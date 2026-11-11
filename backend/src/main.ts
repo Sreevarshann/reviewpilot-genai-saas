@@ -7,4 +7,6 @@ import { CONFIG, type AppConfig } from './config.js';
 // rawBody is needed to verify webhook signatures over the exact bytes received
 const app = await NestFactory.create(AppModule, { bufferLogs: false, rawBody: true });
 configureApp(app);
-await app.listen(app.get<AppConfig>(CONFIG).PORT, '127.0.0.1');
+const config = app.get<AppConfig>(CONFIG);
+// HOST defaults to loopback; containers set HOST=0.0.0.0 behind a localhost-only port mapping
+await app.listen(config.PORT, config.HOST);

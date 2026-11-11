@@ -21,6 +21,37 @@ services:
     mem_limit: 192m
     networks: [reviewpilot]
 
+  # `docker compose --profile app up --build` runs the full stack; the API process also runs
+  # the BullMQ worker. The model is the host's Ollama (no paid API is used by default).
+  api:
+    build: ./backend
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgresql://reviewpilot:reviewpilot_local_only@db:5432/reviewpilot
+      REDIS_URL: redis://redis:6379
+      WEB_ORIGIN: http://localhost:3103
+      LLM_PROVIDER: ${LLM_PROVIDER:-ollama}
+      LLM_BASE_URL: ${LLM_BASE_URL:-http://host.docker.internal:11434}
+      LLM_MODEL: ${LLM_MODEL:-qwen3:4b-instruct}
+      DEV_MAIL_OUTBOX: ${DEV_MAIL_OUTBOX:-false}
+      NODE_ENV: ${API_NODE_ENV:-production}
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    ports: ["127.0.0.1:8113:8113"]
+    healthcheck: { test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8113/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"], interval: 5s, retries: 30 }
+    mem_limit: 768m
+    networks: [reviewpilot]
+    profiles: [app]
+  web:
+    build: { context: ./frontend, args: { REVIEWPILOT_API_ORIGIN: "http://api:8113" } }
+    depends_on:
+      api: { condition: service_healthy }
+    ports: ["127.0.0.1:3103:3103"]
+    mem_limit: 512m
+    networks: [reviewpilot]
+    profiles: [app]
+
 volumes:
   reviewpilot-pg:
 

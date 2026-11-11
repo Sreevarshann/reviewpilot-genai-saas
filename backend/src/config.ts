@@ -4,6 +4,7 @@ import { z } from 'zod';
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().default(8113),
+  HOST: z.string().default('127.0.0.1'),
   DATABASE_URL: z.string().url(),
   REDIS_URL: z.string().url().default('redis://127.0.0.1:56503'),
   QUEUE_PREFIX: z.string().regex(/^[\w-]{1,40}$/).default('reviewpilot'),
