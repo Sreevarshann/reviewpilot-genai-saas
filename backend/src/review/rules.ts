@@ -3,7 +3,7 @@
  * labelled confidence=DETERMINISTIC (pattern-matched, reproducible) and always point at a
  * real added line. They are heuristics, not a full program analysis.
  */
-import type { Category, Severity } from '../../generated/prisma/enums.js';
+import type { Category, Severity } from '../generated/prisma/enums.js';
 import { addedLines, type DiffFile, type DiffLine } from './diff.js';
 
 export interface RawFinding {

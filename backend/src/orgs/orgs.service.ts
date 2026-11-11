@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import type { Role } from '../../generated/prisma/enums.js';
+import type { Role } from '../generated/prisma/enums.js';
 import { AuditService } from '../audit/audit.service.js';
 import { PLANS } from '../billing/plans.js';
 import { randomToken, sha256 } from '../common/crypto.js';

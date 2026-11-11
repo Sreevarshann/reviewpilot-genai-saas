@@ -1,4 +1,4 @@
-import type { Plan } from '../../generated/prisma/enums.js';
+import type { Plan } from '../generated/prisma/enums.js';
 
 /**
  * Local demo plan tiers. These are NOT purchasable subscriptions: no payment provider is

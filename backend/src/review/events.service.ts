@@ -1,6 +1,6 @@
 import { Inject, Injectable, type OnModuleDestroy } from '@nestjs/common';
 import { Redis } from 'ioredis';
-import type { Prisma } from '../../generated/prisma/client.js';
+import type { Prisma } from '../generated/prisma/client.js';
 import { CONFIG, type AppConfig } from '../config.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 

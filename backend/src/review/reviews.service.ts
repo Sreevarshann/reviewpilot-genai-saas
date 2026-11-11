@@ -1,7 +1,7 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, PayloadTooLargeException } from '@nestjs/common';
 import type { Queue } from 'bullmq';
-import type { Prisma } from '../../generated/prisma/client.js';
+import type { Prisma } from '../generated/prisma/client.js';
 import { AuditService } from '../audit/audit.service.js';
 import { PLANS } from '../billing/plans.js';
 import { sha256 } from '../common/crypto.js';

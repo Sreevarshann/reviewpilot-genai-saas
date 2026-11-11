@@ -1,6 +1,6 @@
 import { type CanActivate, type ExecutionContext, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import type { Role } from '../../generated/prisma/enums.js';
+import type { Role } from '../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { MIN_ROLE, ROLE_RANK, type TenantRequest } from './tenancy.js';
 

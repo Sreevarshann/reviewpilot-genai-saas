@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import type { Category, Severity } from '../../generated/prisma/enums.js';
+import type { Category, Severity } from '../generated/prisma/enums.js';
 import { sha256 } from '../common/crypto.js';
 import { CONFIG, type AppConfig } from '../config.js';
 import { type LlmProvider, LlmFactory } from '../llm/llm.js';

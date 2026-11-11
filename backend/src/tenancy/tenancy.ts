@@ -1,5 +1,5 @@
 import { createParamDecorator, type ExecutionContext, SetMetadata } from '@nestjs/common';
-import type { Role } from '../../generated/prisma/enums.js';
+import type { Role } from '../generated/prisma/enums.js';
 import type { AuthedRequest } from '../auth/decorators.js';
 
 export const ROLE_RANK: Record<Role, number> = { VIEWER: 0, REVIEWER: 1, ADMIN: 2, OWNER: 3 };
