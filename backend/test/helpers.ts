@@ -9,7 +9,7 @@ import { TEST_DB_URL } from './global-setup.js';
 import type { TestingModuleBuilder } from '@nestjs/testing';
 
 export async function createTestApp(env: Record<string, string> = {}, customise?: (b: TestingModuleBuilder) => TestingModuleBuilder): Promise<INestApplication> {
-  Object.assign(process.env, { NODE_ENV: 'test', DATABASE_URL: TEST_DB_URL, LLM_PROVIDER: 'fixture', REVIEW_INLINE: 'true', AUTH_RATE_MULTIPLIER: '1000', RATE_LIMIT_PER_MINUTE: '100000', ...env });
+  Object.assign(process.env, { NODE_ENV: 'test', DATABASE_URL: TEST_DB_URL, LLM_PROVIDER: 'fixture', REVIEW_INLINE: 'true', AUTH_RATE_MULTIPLIER: '1000', RATE_LIMIT_PER_MINUTE: '100000', QUEUE_PREFIX: `reviewpilot-test-${process.pid}`, ...env });
   const builder = Test.createTestingModule({ imports: [AppModule] });
   const moduleRef = await (customise ? customise(builder) : builder).compile();
   const app = moduleRef.createNestApplication({ rawBody: true });

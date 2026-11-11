@@ -6,6 +6,7 @@ const schema = z.object({
   PORT: z.coerce.number().int().default(8113),
   DATABASE_URL: z.string().url(),
   REDIS_URL: z.string().url().default('redis://127.0.0.1:56503'),
+  QUEUE_PREFIX: z.string().regex(/^[\w-]{1,40}$/).default('reviewpilot'),
   WEB_ORIGIN: z.string().url().default('http://localhost:3103'),
   COOKIE_SECURE: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
   SESSION_IDLE_HOURS: z.coerce.number().positive().default(72),

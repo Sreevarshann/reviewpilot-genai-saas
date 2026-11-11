@@ -127,7 +127,11 @@ export class ReviewOrchestrator {
   async run(reviewId: string, llm: LlmProvider = this.llm()): Promise<void> {
     const t0 = Date.now();
     const review = await this.prisma.review.findUnique({ where: { id: reviewId } });
-    if (!review || review.status !== 'QUEUED') return; // idempotent: only queued reviews run
+    if (!review) {
+      this.log.warn(`job for unknown review ${reviewId} ignored (deleted, or enqueued by another environment)`);
+      return;
+    }
+    if (review.status !== 'QUEUED') return; // idempotent: only queued reviews run
     await this.prisma.review.update({ where: { id: reviewId }, data: { status: 'RUNNING', startedAt: new Date(), provider: llm.name, model: llm.model } });
     try {
       await this.events.emit(reviewId, 'parsing', 'started');

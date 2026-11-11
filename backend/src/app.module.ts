@@ -21,7 +21,9 @@ import { ReviewModule } from './review/review.module.js';
     AuthModule,
     OrgsModule,
     BillingModule,
-    BullModule.forRoot({ connection: { url: process.env.REDIS_URL ?? 'redis://127.0.0.1:56503' }, prefix: 'reviewpilot' }),
+    // Resolved at bootstrap (not import) time; QUEUE_PREFIX isolates environments sharing one
+    // Redis — e.g. a dev worker must never consume jobs enqueued by the test suite.
+    BullModule.forRootAsync({ useFactory: () => ({ connection: { url: process.env.REDIS_URL ?? 'redis://127.0.0.1:56503' }, prefix: process.env.QUEUE_PREFIX ?? 'reviewpilot' }) }),
     ReviewModule,
     FindingsModule,
     AdminModule,
