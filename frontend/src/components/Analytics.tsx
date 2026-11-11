@@ -9,6 +9,8 @@ import { useOrg } from "./Shell";
 import { useTheme } from "./theme";
 import { Card, Empty, ErrorNote, fmtMs, Meter, PageHeader, Select, Skeleton } from "./ui";
 
+// bar width in ms on a date axis (Plotly cannot infer it from a single day of data)
+const DAY_BAR = 0.7 * 86_400_000;
 const pct = (v: number | null) => (v == null ? "—" : `${Math.round(v * 100)}%`);
 
 function Stat({ label, value, sub }: { label: string; value: React.ReactNode; sub?: React.ReactNode }) {
@@ -65,18 +67,18 @@ export function Analytics() {
         <Empty icon={<BarChart3 className="size-5" />} title="No reviews in this window">Charts fill in as reviews complete and findings are triaged.</Empty>
       ) : (
         <div className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 [&>*]:min-w-0">
             <Stat label="Reviews" value={a.reviews.total} sub={`${a.reviews.completed} completed · ${a.reviews.failed} failed${a.reviews.pending ? ` · ${a.reviews.pending} pending` : ""}`} />
             <Stat label="Median latency" value={fmtMs(a.latencyMs.p50 == null ? null : Math.round(a.latencyMs.p50))} sub={`p90 ${fmtMs(a.latencyMs.p90 == null ? null : Math.round(a.latencyMs.p90))} · ${a.latencyMs.samples} samples`} />
             <Stat label="Findings triaged" value={a.triage.all.triaged} sub={`${a.triage.all.open} still open`} />
             <Stat label="Acceptance (triaged)" value={pct(a.triage.all.acceptanceRate)} sub={`rules ${pct(a.triage.deterministic.acceptanceRate)} · model ${pct(a.triage.model.acceptanceRate)}`} />
           </div>
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-2 [&>*]:min-w-0">
             <Panel title="Reviews over time">
               <Plot label="Reviews per day by outcome" data={[
-                { type: "bar", name: "Completed", x: a.reviewsOverTime.map((d) => d.day), y: a.reviewsOverTime.map((d) => d.completed), marker: { color: c.sapphire } },
-                { type: "bar", name: "Failed", x: a.reviewsOverTime.map((d) => d.day), y: a.reviewsOverTime.map((d) => d.failed), marker: { color: c.crit } },
-              ]} layout={{ barmode: "stack", xaxis: { type: "date", range: [a.range.from.slice(0, 10), a.range.to.slice(0, 10)], tickformat: "%b %d" } }} />
+                { type: "bar", name: "Completed", x: a.reviewsOverTime.map((d) => d.day), y: a.reviewsOverTime.map((d) => d.completed), width: DAY_BAR, marker: { color: c.sapphire } },
+                { type: "bar", name: "Failed", x: a.reviewsOverTime.map((d) => d.day), y: a.reviewsOverTime.map((d) => d.failed), width: DAY_BAR, marker: { color: c.crit } },
+              ]} layout={{ barmode: "stack", xaxis: { type: "date", range: [a.range.from.slice(0, 10), new Date(Date.parse(a.range.to) + 86_400_000).toISOString().slice(0, 10)], tickformat: "%b %d" } }} />
             </Panel>
             <Panel title="Findings by severity">
               <Plot label="Findings by severity" data={[{ type: "bar", x: a.findingsBySeverity.map((s) => s.severity.toLowerCase()), y: a.findingsBySeverity.map((s) => s.count), marker: { color: [c.crit, c.crit, c.copper, c.sapphire, c.muted] } }]} layout={{ showlegend: false }} />
@@ -100,14 +102,16 @@ export function Analytics() {
               }))} layout={{ barmode: "stack" }} />
             </Panel>
           </div>
-          <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
+          <div className="grid gap-4 lg:grid-cols-[1fr_320px] [&>*]:min-w-0">
             <Panel title="Top rules and sources">
+              <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="text-left text-xs text-muted"><tr><th className="py-1.5 font-medium">Source</th><th className="font-medium">Findings</th><th className="font-medium">Accepted</th><th className="font-medium">Rejected</th></tr></thead>
                 <tbody className="divide-y divide-line">
                   {a.topRules.map((r) => <tr key={r.source}><td className="py-1.5 font-mono text-xs">{r.source}</td><td className="tabular-nums">{r.count}</td><td className="tabular-nums text-ok">{r.accepted}</td><td className="tabular-nums text-crit">{r.rejected}</td></tr>)}
                 </tbody>
               </table>
+              </div>
             </Panel>
             <div className="space-y-4">
               <Panel title="Model usage">

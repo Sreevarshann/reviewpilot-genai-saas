@@ -51,7 +51,8 @@ export function NewReview() {
   const loadSample = async () => {
     const text = await (await fetch("/sample.diff")).text();
     edit(() => setDiff(text));
-    if (!title) setTitle("Orders: item listing and discount endpoint");
+    // functional update: the user may have typed a title while the sample was loading
+    setTitle((t) => t || "Orders: item listing and discount endpoint");
   };
 
   if (!atLeast(org.role, "REVIEWER")) return <ErrorNote error="Viewers can read reviews but not submit them. Ask an admin for the reviewer role." />;

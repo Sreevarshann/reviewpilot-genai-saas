@@ -54,9 +54,9 @@ export function ReviewsDashboard() {
     <div className="mx-auto max-w-6xl">
       <PageHeader title="Reviews" subtitle={`${org.name} · ${org.limits.label} plan`} actions={canReview && <Link href={`/o/${org.slug}/reviews/new`}><Button variant="primary"><Plus className="size-4" /> New review</Button></Link>} />
       <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
-        <section aria-label="Review list">
+        <section aria-label="Review list" className="min-w-0">
           <div className="mb-3 flex flex-wrap gap-2">
-            <Input aria-label="Search reviews" placeholder="Search titles…" value={q} onChange={(e) => setQ(e.target.value)} className="min-w-48 flex-1" />
+            <Input aria-label="Search reviews" placeholder="Search titles…" value={q} onChange={(e) => setQ(e.target.value)} className="w-full min-w-0 flex-1 sm:w-auto sm:min-w-48" />
             <Select aria-label="Filter by status" value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="">All statuses</option>
               {["QUEUED", "RUNNING", "COMPLETED", "FAILED"].map((s) => <option key={s} value={s}>{s[0] + s.slice(1).toLowerCase()}</option>)}
@@ -79,8 +79,8 @@ export function ReviewsDashboard() {
           ) : (
             <Card className="divide-y divide-line">
               {list.map((r) => (
-                <Link key={r.id} href={`/o/${org.slug}/reviews/${r.id}`} className="flex flex-col gap-2 px-4 py-3.5 hover:bg-panel-2 sm:flex-row sm:items-center sm:gap-4">
-                  <div className="min-w-0 flex-1">
+                <Link key={r.id} href={`/o/${org.slug}/reviews/${r.id}`} className="flex flex-col items-start gap-2 px-4 py-3.5 hover:bg-panel-2 sm:flex-row sm:items-center sm:gap-4">
+                  <div className="w-full min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="truncate font-medium">{r.title}</span>
                       {r.version > 1 && <Chip tone="copper">v{r.version}</Chip>}
@@ -97,7 +97,7 @@ export function ReviewsDashboard() {
             </Card>
           )}
         </section>
-        <aside className="space-y-4">
+        <aside className="min-w-0 space-y-4">
           <Card className="space-y-4 p-4">
             <h2 className="text-sm font-semibold">This month</h2>
             {usage.data ? (

@@ -182,7 +182,7 @@ export function ReviewDetail() {
       {r.status === "FAILED" ? null : !r.files?.length ? (
         <Skeleton className="h-64" />
       ) : (
-        <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_420px] [&>*]:min-w-0">
           <div className="min-w-0"><DiffView files={r.files} findings={findings.data ?? []} selected={selected} onSelect={select} /></div>
           <aside className="space-y-3 xl:sticky xl:top-4 xl:max-h-[calc(100dvh-2rem)] xl:overflow-y-auto xl:pr-1" aria-label="Findings">
             <div className="flex items-center justify-between">
@@ -270,7 +270,7 @@ function CompareCard({ base, head }: { base: string; head: string }) {
     </div>
   );
   return (
-    <Card className="grid gap-4 p-4 sm:grid-cols-3">
+    <Card className="grid gap-4 p-4 sm:grid-cols-3 [&>*]:min-w-0">
       {col(`New in v${newer.version}`, introduced, "crit", <TriangleAlert className="size-3.5 text-crit" />)}
       {col(`Resolved since v${older.version}`, resolved, "ok", <Check className="size-3.5 text-ok" />)}
       {col("Still present", persisting, "neutral", <X className="size-3.5 text-muted" />)}
