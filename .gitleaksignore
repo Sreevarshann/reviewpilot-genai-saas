@@ -1,0 +1,4 @@
+# False positive (reviewed 2026-11-11): generic-api-key matched the test Idempotency-Key value
+# "ui-key-12345678" in an API-client unit test. Not a credential. The value was changed in a later
+# commit; this fingerprint covers the historical occurrence so full-history scans stay meaningful.
+cba44f634ba413c6e4c1edd824d8ad1e0819bda9:frontend/src/__tests__/ui.test.tsx:generic-api-key:55

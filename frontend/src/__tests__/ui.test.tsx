@@ -47,12 +47,12 @@ describe("api client", () => {
   it("sends the Idempotency-Key and CSRF header, and surfaces API error codes", async () => {
     const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: "plan_limit", message: "The Free plan allows 25 reviews" }), { status: 403, headers: { "content-type": "application/json" } }));
     vi.stubGlobal("fetch", fetch);
-    const err = await api.submitReview("acme", { projectId: "p", title: "t", diff: "diff --git a b" }, "ui-key-12345678").catch((e) => e);
+    const err = await api.submitReview("acme", { projectId: "p", title: "t", diff: "diff --git a b" }, "draft-0001-0001").catch((e) => e);
     expect(err).toBeInstanceOf(ApiError);
     expect(err).toMatchObject({ status: 403, code: "plan_limit", message: "The Free plan allows 25 reviews" });
     const [url, init] = fetch.mock.calls[0];
     expect(url).toBe("/api/orgs/acme/reviews");
-    expect(init.headers).toMatchObject({ "Idempotency-Key": "ui-key-12345678", "X-Requested-With": "reviewpilot", "Content-Type": "application/json" });
+    expect(init.headers).toMatchObject({ "Idempotency-Key": "draft-0001-0001", "X-Requested-With": "reviewpilot", "Content-Type": "application/json" });
   });
 
   it("joins the API's 422 validation messages", async () => {
