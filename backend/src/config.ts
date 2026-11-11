@@ -18,7 +18,8 @@ const schema = z.object({
   LLM_TIMEOUT_MS: z.coerce.number().int().positive().default(120_000),
   REVIEW_INLINE: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
   WEBHOOK_SECRET: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(16).optional()),
-});
+  DEV_MAIL_OUTBOX: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
+}).refine((c) => !(c.NODE_ENV === 'production' && c.DEV_MAIL_OUTBOX), { message: 'must be false in production', path: ['DEV_MAIL_OUTBOX'] });
 
 export type AppConfig = z.infer<typeof schema>;
 

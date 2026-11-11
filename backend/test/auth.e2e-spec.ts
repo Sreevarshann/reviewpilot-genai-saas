@@ -118,3 +118,25 @@ describe('rate limiting', () => {
     expect(codes).toContain(429);
   });
 });
+
+describe('development mail outbox', () => {
+  it('is hidden unless enabled, and only lists the requested address', async () => {
+    const off = await createTestApp({ DEV_MAIL_OUTBOX: 'false' });
+    await api(off).get('/api/dev/outbox?email=a@acme.test').expect(404);
+    await off.close();
+    const on = await createTestApp({ DEV_MAIL_OUTBOX: 'true' });
+    await resetDb(on);
+    await signUp(on, 'a@acme.test');
+    await api(on).post('/api/auth/password-reset/request').set('Origin', ORIGIN).send({ email: 'a@acme.test' }).expect(202);
+    const box = (await api(on).get('/api/dev/outbox?email=a@acme.test').expect(200)).body;
+    expect(box[0].text).toMatch(/reset-password\?token=/);
+    expect((await api(on).get('/api/dev/outbox?email=b@acme.test').expect(200)).body).toEqual([]);
+    await on.close();
+    process.env.DEV_MAIL_OUTBOX = 'false';
+  });
+
+  it('refuses to start in production with the outbox enabled', async () => {
+    const { loadConfig } = await import('../src/config.js');
+    expect(() => loadConfig({ NODE_ENV: 'production', DATABASE_URL: 'postgresql://x@h/db', DEV_MAIL_OUTBOX: 'true' })).toThrow(/DEV_MAIL_OUTBOX: must be false in production/);
+  });
+});
