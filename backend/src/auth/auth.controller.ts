@@ -2,6 +2,7 @@ import { Body, Controller, Get, HttpCode, Post, Req, Res } from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { LoginSchema, RegisterSchema, ResetConfirmSchema, ResetRequestSchema, type LoginInput, type RegisterInput } from './auth.schemas.js';
+import { OrgsService } from '../orgs/orgs.service.js';
 import { AuthService } from './auth.service.js';
 import { CurrentUser, Public } from './decorators.js';
 import { SessionService, type SessionUser } from './session.service.js';
@@ -14,6 +15,7 @@ export class AuthController {
   constructor(
     private readonly auth: AuthService,
     private readonly sessions: SessionService,
+    private readonly orgs: OrgsService,
   ) {}
 
   private async signIn(userId: string, req: Request, res: Response): Promise<void> {
@@ -32,6 +34,7 @@ export class AuthController {
   @Post('register')
   async register(@Body({ schema: RegisterSchema }) body: RegisterInput, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const user = await this.auth.register(body);
+    if (body.organizationName) await this.orgs.create(user.id, body.organizationName);
     await this.signIn(user.id, req, res);
     return this.auth.me(user.id);
   }

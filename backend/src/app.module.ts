@@ -4,6 +4,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module.js';
 import { AppConfigModule } from './common/config.module.js';
 import { HealthModule } from './health/health.module.js';
+import { OrgsModule } from './orgs/orgs.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 
 @Module({
@@ -12,6 +13,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
     PrismaModule,
     ThrottlerModule.forRoot({ throttlers: [{ name: 'default', ttl: 60_000, limit: Number(process.env.RATE_LIMIT_PER_MINUTE ?? 300) }] }),
     AuthModule,
+    OrgsModule,
     HealthModule,
   ],
   // Throttler runs before authentication so brute force is limited even for bad credentials.
