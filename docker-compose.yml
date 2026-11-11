@@ -1,0 +1,28 @@
+# ReviewPilot local infrastructure (project "reviewpilot"; localhost-only ports).
+name: reviewpilot
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: reviewpilot
+      POSTGRES_PASSWORD: reviewpilot_local_only
+      POSTGRES_DB: reviewpilot
+    ports: ["127.0.0.1:55503:5432"]
+    volumes: [reviewpilot-pg:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U reviewpilot"], interval: 3s, retries: 20 }
+    mem_limit: 512m
+    networks: [reviewpilot]
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "128mb"]
+    ports: ["127.0.0.1:56503:6379"]
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 3s, retries: 20 }
+    mem_limit: 192m
+    networks: [reviewpilot]
+
+volumes:
+  reviewpilot-pg:
+
+networks:
+  reviewpilot:

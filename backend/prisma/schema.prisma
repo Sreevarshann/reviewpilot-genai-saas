@@ -1,0 +1,297 @@
+// ReviewPilot — multi-tenant code-review SaaS.
+// Every tenant-owned row carries organizationId; services always filter by it.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  REVIEWER
+  VIEWER
+}
+
+enum Plan {
+  FREE
+  TEAM
+  BUSINESS
+}
+
+enum ReviewStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum Severity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+  INFO
+}
+
+enum Category {
+  BUG
+  SECURITY
+  ERROR_HANDLING
+  PERFORMANCE
+  MAINTAINABILITY
+  TESTING
+  DOCUMENTATION
+}
+
+enum Confidence {
+  DETERMINISTIC
+  MODEL
+}
+
+enum FindingState {
+  OPEN
+  ACCEPTED
+  DISMISSED
+  FALSE_POSITIVE
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime     @default(now())
+  memberships  Membership[]
+  sessions     Session[]
+  resetTokens  PasswordResetToken[]
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+  expiresAt  DateTime
+  userAgent  String?
+  ip         String?
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model Organization {
+  id            String       @id @default(cuid())
+  name          String
+  slug          String       @unique
+  plan          Plan         @default(FREE)
+  retentionDays Int          @default(90)
+  createdAt     DateTime     @default(now())
+  memberships   Membership[]
+  invitations   Invitation[]
+  projects      Project[]
+  reviews       Review[]
+  usage         UsageRecord[]
+  audit         AuditEvent[]
+  apiTokens     ApiToken[]
+}
+
+model Membership {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           Role
+  createdAt      DateTime     @default(now())
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+}
+
+model Invitation {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String
+  role           Role
+  tokenHash      String       @unique
+  invitedById    String
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+}
+
+model Project {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  repoUrl        String?
+  createdAt      DateTime     @default(now())
+  reviews        Review[]
+
+  @@unique([organizationId, name])
+}
+
+model Review {
+  id             String        @id @default(cuid())
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  projectId      String
+  project        Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  authorId       String
+  title          String
+  status         ReviewStatus  @default(QUEUED)
+  diff           String
+  diffSha256     String
+  idempotencyKey String?
+  version        Int           @default(1)
+  parentReviewId String?
+  stats          Json          @default("{}")
+  provider       String?
+  model          String?
+  tokensIn       Int           @default(0)
+  tokensOut      Int           @default(0)
+  durationMs     Int?
+  error          String?
+  createdAt      DateTime      @default(now())
+  startedAt      DateTime?
+  completedAt    DateTime?
+  files          ReviewFile[]
+  findings       Finding[]
+  events         ReviewEvent[]
+
+  @@unique([organizationId, idempotencyKey])
+  @@index([organizationId, createdAt])
+  @@index([projectId])
+}
+
+model ReviewFile {
+  id        String    @id @default(cuid())
+  reviewId  String
+  review    Review    @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  path      String
+  oldPath   String?
+  language  String
+  status    String
+  additions Int
+  deletions Int
+  hunks     Json
+  findings  Finding[]
+
+  @@index([reviewId])
+}
+
+model Finding {
+  id             String           @id @default(cuid())
+  organizationId String
+  reviewId       String
+  review         Review           @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  fileId         String?
+  file           ReviewFile?      @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  path           String
+  lineStart      Int
+  lineEnd        Int
+  category       Category
+  severity       Severity
+  title          String
+  description    String
+  evidence       String
+  suggestedFix   String?
+  confidence     Confidence
+  source         String
+  state          FindingState     @default(OPEN)
+  stateChangedBy String?
+  stateChangedAt DateTime?
+  fingerprint    String
+  createdAt      DateTime         @default(now())
+  comments       FindingComment[]
+
+  @@index([organizationId, state])
+  @@index([reviewId])
+}
+
+model FindingComment {
+  id             String   @id @default(cuid())
+  organizationId String
+  findingId      String
+  finding        Finding  @relation(fields: [findingId], references: [id], onDelete: Cascade)
+  authorId       String
+  body           String
+  createdAt      DateTime @default(now())
+}
+
+model ReviewEvent {
+  id        String   @id @default(cuid())
+  reviewId  String
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  seq       Int
+  stage     String
+  status    String
+  detail    Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  @@unique([reviewId, seq])
+}
+
+model UsageRecord {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  reviewId       String?
+  kind           String
+  quantity       Int
+  provider       String?
+  model          String?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, kind, createdAt])
+}
+
+model AuditEvent {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actorId        String?
+  action         String
+  targetType     String?
+  targetId       String?
+  metadata       Json         @default("{}")
+  ip             String?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+}
+
+model ApiToken {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  prefix         String
+  tokenHash      String       @unique
+  createdById    String
+  lastUsedAt     DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime     @default(now())
+}

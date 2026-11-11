@@ -1,0 +1,16 @@
+node_modules/
+dist/
+coverage/
+backend/generated/
+.env
+.env.*
+!.env.example
+.next/
+*.tsbuildinfo
+next-env.d.ts
+frontend/test-results/
+frontend/playwright-report/
+.DS_Store
+.claude/
+.agents/
+.windsurf/
