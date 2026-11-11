@@ -66,6 +66,8 @@ export function NewReview() {
               <Select value={pid} onChange={(e) => edit(() => setProjectId(e.target.value))}>
                 {projects.data.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
               </Select>
+            ) : !atLeast(org.role, "ADMIN") ? (
+              <p className="py-2 text-sm text-muted">No projects yet. Ask an admin to create one.</p>
             ) : (
               <div className="flex gap-2">
                 <Input placeholder="First project name" value={newProject} onChange={(e) => setNewProject(e.target.value)} className="flex-1" />
