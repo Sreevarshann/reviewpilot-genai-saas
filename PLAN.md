@@ -18,11 +18,13 @@ Ports: API 8113, web 3103, Postgres 55503, Redis 56503 (verified free 2026-11-11
 - **SaaS**: plans (Free/Team/Business, mock billing — no payments), usage metering (reviews,
   tokens, duration), limits (reviews/month, projects, seats, diff size), audit log, API tokens,
   retention settings, signed webhook intake.
-- **Frontend**: Next.js graphite/sapphire/copper developer UI; review dashboard, Monaco diff
-  viewer with inline markers, findings inspector, org admin, Plotly analytics.
+- **Frontend**: Next.js graphite/sapphire/copper developer UI; review dashboard, diff viewer
+  with inline markers, findings inspector, org admin, Plotly analytics.
+  *Changed during build:* a custom unified-diff viewer replaced the planned Monaco diff editor,
+  because reviews store hunks rather than full before/after files (see docs/DECISIONS.md #7).
 
 ## Milestones
-1. SaaS foundation (Nest, Prisma schema, compose, real-DB tests) ← current
+1. SaaS foundation (Nest, Prisma schema, compose, real-DB tests)
 2. Authentication + sessions
 3. Organizations, memberships, invitations, tenant isolation
 4. Diff parser
@@ -35,3 +37,5 @@ Ports: API 8113, web 3103, Postgres 55503, Redis 56503 (verified free 2026-11-11
 11. Analytics API
 12. Frontend
 13. E2E, docs, screenshots, CI, deployment
+
+All milestones are complete. See PROGRESS.md for commits and checks.
