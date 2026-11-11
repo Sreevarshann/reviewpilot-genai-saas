@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+/* ReviewPilot — graphite workspace, sapphire actions, copper attention marks. */
+:root {
+  --bg: #f4f5f7;
+  --panel: #ffffff;
+  --panel-2: #eef0f3;
+  --line: #dde1e7;
+  --ink: #1b1f24;
+  --muted: #5f6873;
+  --sapphire: #1f4fd1;
+  --sapphire-soft: #e3eafc;
+  --copper: #b4652d;
+  --copper-soft: #f7e8dc;
+  --crit: #b42335;
+  --crit-soft: #fbe3e6;
+  --ok: #1f7a4d;
+  --ok-soft: #e0f2e8;
+  --add: #e7f6ec;
+  --add-ink: #1a6a3f;
+  --del: #fdecee;
+  --del-ink: #9b2333;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #121417;
+  --panel: #181b1f;
+  --panel-2: #20242a;
+  --line: #2c3138;
+  --ink: #e6e9ed;
+  --muted: #9aa3ad;
+  --sapphire: #7ea2ff;
+  --sapphire-soft: #1c2a4d;
+  --copper: #e39a63;
+  --copper-soft: #3a2719;
+  --crit: #ff8a96;
+  --crit-soft: #3d1b20;
+  --ok: #6fd3a0;
+  --ok-soft: #173326;
+  --add: #12291c;
+  --add-ink: #8fe0b0;
+  --del: #33171b;
+  --del-ink: #ff9aa5;
+  color-scheme: dark;
+}
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-sapphire: var(--sapphire);
+  --color-sapphire-soft: var(--sapphire-soft);
+  --color-copper: var(--copper);
+  --color-copper-soft: var(--copper-soft);
+  --color-crit: var(--crit);
+  --color-crit-soft: var(--crit-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-add: var(--add);
+  --color-add-ink: var(--add-ink);
+  --color-del: var(--del);
+  --color-del-ink: var(--del-ink);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-head);
+  --font-mono: var(--font-code);
+}
+html, body { background: var(--bg); color: var(--ink); }
+body { font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+.font-display { font-family: var(--font-head), ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.01em; }
+:focus-visible { outline: 2px solid var(--sapphire); outline-offset: 2px; }
+.skeleton { background: linear-gradient(90deg, var(--panel-2), var(--line), var(--panel-2)); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
