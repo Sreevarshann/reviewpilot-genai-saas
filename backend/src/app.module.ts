@@ -2,6 +2,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { AdminModule } from './admin/admin.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { BillingModule } from './billing/billing.module.js';
 import { AppConfigModule } from './common/config.module.js';
@@ -22,6 +23,7 @@ import { ReviewModule } from './review/review.module.js';
     BullModule.forRoot({ connection: { url: process.env.REDIS_URL ?? 'redis://127.0.0.1:56503' }, prefix: 'reviewpilot' }),
     ReviewModule,
     FindingsModule,
+    AdminModule,
     HealthModule,
   ],
   // Throttler runs before authentication so brute force is limited even for bad credentials.

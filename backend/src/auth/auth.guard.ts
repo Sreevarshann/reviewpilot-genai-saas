@@ -1,5 +1,6 @@
 import { type CanActivate, type ExecutionContext, ForbiddenException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { ApiTokensService } from '../admin/api-tokens.service.js';
 import { CONFIG, type AppConfig } from '../config.js';
 import { IS_PUBLIC, type AuthedRequest } from './decorators.js';
 import { SessionService } from './session.service.js';
@@ -15,6 +16,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly sessions: SessionService,
+    private readonly apiTokens: ApiTokensService,
     @Inject(CONFIG) private readonly config: AppConfig,
   ) {}
 
@@ -24,6 +26,9 @@ export class AuthGuard implements CanActivate {
     const cookie = (req.cookies as Record<string, string> | undefined)?.[this.sessions.cookieName];
     if (cookie && UNSAFE.has(req.method)) this.checkOrigin(req);
     if (cookie) req.user = (await this.sessions.validate(cookie)) ?? undefined;
+    const bearer = req.headers.authorization;
+    // API tokens authenticate machine clients for organization routes only (no cookies, so no CSRF).
+    if (!req.user && bearer?.startsWith('Bearer rpk_')) req.apiToken = (await this.apiTokens.authenticate(bearer.slice(7))) ?? undefined;
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC, [ctx.getHandler(), ctx.getClass()]);
     if (isPublic || req.user || req.apiToken) return true;
     throw new UnauthorizedException({ error: 'unauthenticated', message: 'Sign in required' });

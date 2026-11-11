@@ -12,7 +12,7 @@ export async function createTestApp(env: Record<string, string> = {}, customise?
   Object.assign(process.env, { NODE_ENV: 'test', DATABASE_URL: TEST_DB_URL, LLM_PROVIDER: 'fixture', REVIEW_INLINE: 'true', AUTH_RATE_MULTIPLIER: '1000', RATE_LIMIT_PER_MINUTE: '100000', ...env });
   const builder = Test.createTestingModule({ imports: [AppModule] });
   const moduleRef = await (customise ? customise(builder) : builder).compile();
-  const app = moduleRef.createNestApplication();
+  const app = moduleRef.createNestApplication({ rawBody: true });
   configureApp(app);
   await app.init();
   return app;
