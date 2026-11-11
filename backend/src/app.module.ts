@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AdminModule } from './admin/admin.module.js';
+import { AnalyticsModule } from './analytics/analytics.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { BillingModule } from './billing/billing.module.js';
 import { AppConfigModule } from './common/config.module.js';
@@ -24,6 +25,7 @@ import { ReviewModule } from './review/review.module.js';
     ReviewModule,
     FindingsModule,
     AdminModule,
+    AnalyticsModule,
     HealthModule,
   ],
   // Throttler runs before authentication so brute force is limited even for bad credentials.
