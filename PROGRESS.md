@@ -24,7 +24,8 @@
 | 13 | 16 real screenshots of the live stack (qwen3:4b-instruct via Ollama) | `7959ee7` | ✔ | — |
 | — | Project creation offered only to admins on the new-review form | `3accea1` | ✔ | eslint · tsc |
 | 14 | Docker images + compose `app` profile (verified: live review through web → api containers), CI frontend / E2E / Docker jobs | `a984879` | ✔ | images build · stack healthy · integration 63/63 |
-| 15 | README and docs (architecture, tenancy, orchestration, metering, integration security, security, API, testing, demo, deployment, decisions) | see git log | ✔ | — |
+| 15 | README and docs (architecture, tenancy, orchestration, metering, integration security, security, API, testing, demo, deployment, decisions) | `e63288b` | ✔ | — |
+| — | Secret scan had failed since `cba44f6` on a gitleaks false positive (test Idempotency-Key value); value changed, single historical fingerprint allow-listed, history not rewritten | `c43021b` | ✔ | **CI run 43116623015: backend, frontend, E2E, Docker, gitleaks all green** |
 
 > **Correction (2026-11-11):** milestone 5 was first reported as pushed, but the commit had been refused by the local secret guard because the rule tests contained credential-shaped fake tokens; the refusal was hidden by piping the commit script through `tail`. Test tokens are now assembled at runtime and the milestone was committed afterwards (see git log).
 
