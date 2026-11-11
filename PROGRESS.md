@@ -8,6 +8,8 @@
 | 4 | Unified diff parser: git and plain diffs, added/deleted/renamed/binary files, multi-hunk exact old/new line numbers, no-newline markers, language detection, size limits, path-traversal rejection | `93b2d3c` | ✔ verified | unit 7/7 |
 | 5 | Static rules (deterministic, added lines only): secrets (redacted evidence), SQL/command injection, eval, TLS disabled, weak hashes, empty/swallowed catch, bare except, N+1 loop queries, SELECT *, debug output, TODO, source-without-tests | see git log | ✔ | unit 28/28 (incl. safe-equivalent negatives) |
 
+| 6 | Review pipeline: LLM adapter (Ollama structured output / OpenAI-compatible / labelled fixture), secret-redacted bounded context, orchestrator (parse → static → model → validate cited lines + evidence → dedupe with deterministic precedence → cap model severity → persist → meter), model-failure degradation, BullMQ worker, persisted + Redis-published events, authenticated SSE replay/follow, re-review versions, diff-size + monthly plan limits, 5 MB JSON body limit, Idempotency-Key validated before any side effect, conflicting reuse → 409, concurrent duplicates → one review | see git log | ✔ | integration 41/41 · unit 28/28 · oxlint ✔ · tsc ✔ |
+
 > **Correction (2026-11-11):** milestone 5 was first reported as pushed, but the commit had been refused by the local secret guard because the rule tests contained credential-shaped fake tokens; the refusal was hidden by piping the commit script through `tail`. Test tokens are now assembled at runtime and the milestone was committed afterwards (see git log).
 
 ## Decisions
