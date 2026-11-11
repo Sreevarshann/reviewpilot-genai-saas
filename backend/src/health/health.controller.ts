@@ -1,5 +1,6 @@
 import { Controller, Get, Inject } from '@nestjs/common';
 import { Redis } from 'ioredis';
+import { Public } from '../auth/decorators.js';
 import { CONFIG, type AppConfig } from '../config.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
@@ -10,6 +11,7 @@ export class HealthController {
     @Inject(CONFIG) private readonly config: AppConfig,
   ) {}
 
+  @Public()
   @Get()
   async health(): Promise<Record<string, unknown>> {
     let database = false;

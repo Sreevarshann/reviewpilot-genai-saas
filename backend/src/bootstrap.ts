@@ -1,4 +1,4 @@
-import type { INestApplication } from '@nestjs/common';
+import { type INestApplication, StandardSchemaValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { CONFIG, type AppConfig } from './config.js';
@@ -10,5 +10,8 @@ export function configureApp(app: INestApplication): void {
   app.use(helmet());
   app.use(cookieParser());
   app.enableCors({ origin: [config.WEB_ORIGIN], credentials: true });
+  // Zod schemas on @Body({ schema }) / @Query({ schema }) are enforced globally (422 on failure).
+  app.useGlobalPipes(new StandardSchemaValidationPipe({ errorHttpStatusCode: 422 }));
+  app.getHttpAdapter().getInstance().set('trust proxy', false);
   app.enableShutdownHooks();
 }
