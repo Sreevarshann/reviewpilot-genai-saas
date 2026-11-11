@@ -77,12 +77,13 @@ export class ReviewsService {
     return { review: await this.get(t, review.id), replayed: false };
   }
 
-  async rerun(t: Tenant, id: string) {
+  /** New version of a review: the same diff again, or a revised diff/title after fixes. */
+  async rerun(t: Tenant, id: string, revision: { diff?: string; title?: string } = {}) {
     const prev = await this.prisma.review.findFirst({ where: { id, organizationId: t.organizationId } });
     if (!prev) throw new NotFoundException({ error: 'not_found', message: 'Review not found' });
     const root = prev.parentReviewId ?? prev.id;
     const latest = await this.prisma.review.aggregate({ where: { organizationId: t.organizationId, OR: [{ id: root }, { parentReviewId: root }] }, _max: { version: true } });
-    return this.submit(t, { projectId: prev.projectId, title: prev.title, diff: prev.diff }, undefined, root, (latest._max.version ?? 1) + 1);
+    return this.submit(t, { projectId: prev.projectId, title: revision.title ?? prev.title, diff: revision.diff ?? prev.diff }, undefined, root, (latest._max.version ?? 1) + 1);
   }
 
   list(t: Tenant, q: { projectId?: string; status?: string; take: number }) {

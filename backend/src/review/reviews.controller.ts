@@ -9,6 +9,7 @@ import { channel, TERMINAL } from './events.service.js';
 import { assertIdempotencyKey, ReviewsService } from './reviews.service.js';
 
 const SubmitSchema = z.object({ projectId: z.string().min(1).max(40), title: z.string().trim().min(1).max(200), diff: z.string().min(10).max(5_000_000) });
+const RerunSchema = z.object({ title: SubmitSchema.shape.title.optional(), diff: SubmitSchema.shape.diff.optional() }).default({});
 const ListQuery = z.object({ projectId: z.string().max(40).optional(), status: z.enum(['QUEUED', 'RUNNING', 'COMPLETED', 'FAILED']).optional(), take: z.coerce.number().int().min(1).max(200).default(50) });
 const FindingQuery = z.object({ severity: z.enum(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO']).optional(), state: z.enum(['OPEN', 'ACCEPTED', 'DISMISSED', 'FALSE_POSITIVE']).optional(), confidence: z.enum(['DETERMINISTIC', 'MODEL']).optional() });
 
@@ -53,8 +54,8 @@ export class ReviewsController {
   @Post(':id/rerun')
   @RequireRole('REVIEWER')
   @HttpCode(202)
-  async rerun(@CurrentTenant() t: Tenant, @Param('id') id: string) {
-    return (await this.reviews.rerun(t, id)).review;
+  async rerun(@CurrentTenant() t: Tenant, @Param('id') id: string, @Body({ schema: RerunSchema }) body: z.infer<typeof RerunSchema>) {
+    return (await this.reviews.rerun(t, id, body ?? {})).review;
   }
 
   /**

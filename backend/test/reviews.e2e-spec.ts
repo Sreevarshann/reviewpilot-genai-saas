@@ -134,6 +134,21 @@ describe('review pipeline', () => {
     await agent.get(`/api/orgs/${slug}/reviews/${r.id}/events`).set('Origin', 'x').expect(200); // GET is not origin-checked
   });
 
+  it('re-reviews a revised diff as the next version and reports resolved findings', async () => {
+    const { agent, slug, project } = await setup(app);
+    const r = (await agent.post(`/api/orgs/${slug}/reviews`).set('Origin', ORIGIN).send({ projectId: project.id, title: 'orig', diff: SAMPLE_DIFF }).expect(202)).body;
+    const fixed = SAMPLE_DIFF.replace(`+    return db.query("SELECT * FROM orders WHERE id = '" + id + "'");`, `+    return db.query('SELECT id, status FROM orders WHERE id = $1', [id]);`);
+    expect(fixed).not.toBe(SAMPLE_DIFF);
+    const v2 = (await agent.post(`/api/orgs/${slug}/reviews/${r.id}/rerun`).set('Origin', ORIGIN).send({ diff: fixed, title: 'orig (revised)' }).expect(202)).body;
+    expect(v2).toMatchObject({ version: 2, parentReviewId: r.id, title: 'orig (revised)', status: 'COMPLETED' });
+    const v3 = (await agent.post(`/api/orgs/${slug}/reviews/${v2.id}/rerun`).set('Origin', ORIGIN).expect(202)).body;
+    expect(v3).toMatchObject({ version: 3, parentReviewId: r.id, title: 'orig (revised)' });
+    const cmp = (await agent.get(`/api/orgs/${slug}/reviews/${r.id}/compare/${v2.id}`).expect(200)).body;
+    expect(cmp.resolved.map((f: { source: string }) => f.source)).toEqual(expect.arrayContaining(['rule:sql-injection-concat', 'rule:select-star']));
+    expect(cmp.introduced.filter((f: { confidence: string }) => f.confidence === 'DETERMINISTIC')).toEqual([]);
+    await agent.post(`/api/orgs/${slug}/reviews/${r.id}/rerun`).set('Origin', ORIGIN).send({ diff: 'short' }).expect(422);
+  });
+
   it('viewers cannot submit reviews', async () => {
     const owner = await setup(app);
     await owner.agent.post(`/api/orgs/${owner.slug}/invitations`).set('Origin', ORIGIN).send({ email: 'v@acme.test', role: 'VIEWER' }).expect(201);

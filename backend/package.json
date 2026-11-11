@@ -23,7 +23,8 @@
     "typecheck": "tsc --noEmit",
     "db:migrate": "prisma migrate deploy",
     "db:generate": "prisma generate",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "demo:seed": "node scripts/seed-demo.mjs"
   },
   "dependencies": {
     "@nestjs/bullmq": "^12.0.1",
