@@ -28,6 +28,26 @@ const ModelFinding = z.object({
 const SEVERITY_ORDER: Severity[] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'];
 const norm = (s: string) => s.replace(/\s+/g, ' ').trim().toLowerCase();
 
+/**
+ * True when the quoted evidence really appears on the cited lines. Models often echo the
+ * context's own line labels ("L6:", "L10-13:") and diff markers, or elide the middle of a
+ * multi-line quote with "..."; those are stripped, and each remaining fragment must appear in
+ * order. At least one fragment must be substantive (>= 8 chars) so "{ ... }" cannot match.
+ */
+export function evidenceMatches(code: string, evidence: string): boolean {
+  const cleaned = evidence.replace(/^\s*L\d+(?:\s*[-–]\s*L?\d+)?\s*[:|]?\s*/, '').replace(/^[+\s]+/, '');
+  const fragments = cleaned.split(/\.\.\.|…/).map((f) => norm(f).slice(0, 200)).filter((f) => f.length >= 3);
+  if (!fragments.some((f) => f.length >= 8)) return false;
+  const hay = norm(code);
+  let at = 0;
+  for (const f of fragments) {
+    const i = hay.indexOf(f, at);
+    if (i < 0) return false;
+    at = i + f.length;
+  }
+  return true;
+}
+
 export interface ValidationOutcome {
   accepted: RawFinding[];
   rejected: { reason: string; path?: string; line?: number; title?: string }[];
@@ -59,7 +79,7 @@ export function validateModelFindings(raw: unknown, files: DiffFile[]): Validati
       continue;
     }
     const code = file.hunks.flatMap((h) => h.lines).filter((l) => l.newLine !== null && l.newLine >= f.line_start && l.newLine <= end).map((l) => l.text).join('\n');
-    if (!norm(code).includes(norm(f.evidence).replace(/^[+\s]+/, '').slice(0, 200))) {
+    if (!evidenceMatches(code, f.evidence)) {
       out.rejected.push({ reason: 'evidence does not match the cited lines', path: file.path, line: f.line_start, title: f.title });
       continue;
     }
