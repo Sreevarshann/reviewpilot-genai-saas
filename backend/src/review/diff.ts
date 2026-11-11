@@ -11,7 +11,9 @@ export type FileStatus = 'added' | 'deleted' | 'modified' | 'renamed' | 'binary'
 export interface DiffFile { path: string; oldPath: string | null; status: FileStatus; language: string; additions: number; deletions: number; hunks: Hunk[] }
 export interface ParsedDiff { files: DiffFile[]; additions: number; deletions: number }
 
-export class DiffError extends Error {}
+export class DiffError extends Error {
+  override name = 'DiffError';
+}
 
 export const LIMITS = { maxFiles: 300, maxLines: 60_000, maxLineLength: 5_000 };
 
@@ -28,11 +30,16 @@ export function languageOf(path: string): string {
   return LANG[ext] ?? 'text';
 }
 
+function hasControlChar(s: string): boolean {
+  for (let i = 0; i < s.length; i++) if (s.charCodeAt(i) < 0x20) return true;
+  return false;
+}
+
 function cleanPath(raw: string): string {
   let p = raw.trim().replace(/^"(.*)"$/, '$1');
   p = p.replace(/^[ab]\//, '');
   if (p === '/dev/null') return p;
-  if (p.startsWith('/') || p.split('/').some((s) => s === '..') || /[\x00-\x1f]/.test(p)) throw new DiffError(`Unsafe path in diff: ${p.slice(0, 100)}`);
+  if (p.startsWith('/') || p.split('/').some((s) => s === '..') || hasControlChar(p)) throw new DiffError(`Unsafe path in diff: ${p.slice(0, 100)}`);
   if (p.length > 500) throw new DiffError('Path too long');
   return p;
 }
@@ -84,8 +91,8 @@ export function parseDiff(input: string): ParsedDiff {
       continue;
     }
     if (!file) continue;
-    if (/^new file mode/.test(line)) { file.status = 'added'; continue; }
-    if (/^deleted file mode/.test(line)) { file.status = 'deleted'; continue; }
+    if (line.startsWith('new file mode')) { file.status = 'added'; continue; }
+    if (line.startsWith('deleted file mode')) { file.status = 'deleted'; continue; }
     if (line.startsWith('rename from ')) { file.oldPath = cleanPath(line.slice(12)); file.status = 'renamed'; continue; }
     if (line.startsWith('rename to ')) { file.path = cleanPath(line.slice(10)); file.language = languageOf(file.path); file.status = 'renamed'; continue; }
     if (/^Binary files .* differ$/.test(line) || line === 'GIT binary patch') { file.status = 'binary'; continue; }
