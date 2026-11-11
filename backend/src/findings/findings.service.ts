@@ -7,7 +7,7 @@ import type { Tenant } from '../tenancy/tenancy.js';
 const CSV_COLUMNS = ['severity', 'category', 'confidence', 'state', 'path', 'lineStart', 'lineEnd', 'title', 'description', 'evidence', 'suggestedFix', 'source'] as const;
 
 function csvCell(v: unknown): string {
-  let s = v === null || v === undefined ? '' : String(v);
+  let s = v === null || v === undefined ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v as string | number | boolean);
   if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`; // neutralise spreadsheet formula injection
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }

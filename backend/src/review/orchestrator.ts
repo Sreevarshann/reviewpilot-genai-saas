@@ -4,6 +4,8 @@ import type { Category, Severity } from '../generated/prisma/enums.js';
 import { sha256 } from '../common/crypto.js';
 import { CONFIG, type AppConfig } from '../config.js';
 import { type LlmProvider, LlmFactory } from '../llm/llm.js';
+import { PLANS } from '../billing/plans.js';
+import { UsageService } from '../billing/usage.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { buildContext } from './context.js';
 import { type DiffFile, parseDiff, visibleNewLines } from './diff.js';
@@ -94,6 +96,7 @@ export class ReviewOrchestrator {
     private readonly prisma: PrismaService,
     private readonly events: ReviewEventsService,
     private readonly llmFactory: LlmFactory,
+    private readonly usage: UsageService,
     @Inject(CONFIG) private readonly config: AppConfig,
   ) {}
 
@@ -123,7 +126,10 @@ export class ReviewOrchestrator {
       let tokensIn = 0;
       let tokensOut = 0;
       let modelError: string | null = null;
-      if (ctx.text) {
+      const org = await this.prisma.organization.findUniqueOrThrow({ where: { id: review.organizationId }, select: { plan: true } });
+      const budget = PLANS[org.plan].llmTokensPerMonth - (await this.usage.tokensThisMonth(review.organizationId));
+      if (ctx.text && budget <= 0) modelError = 'Monthly LLM token budget exhausted; deterministic checks only';
+      else if (ctx.text) {
         try {
           const res = await llm.completeJson(REVIEW_SYSTEM, ctx.text, REVIEW_SCHEMA);
           tokensIn = res.tokensIn;

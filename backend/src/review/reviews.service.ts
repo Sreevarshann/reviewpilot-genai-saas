@@ -5,6 +5,7 @@ import type { Prisma } from '../generated/prisma/client.js';
 import { AuditService } from '../audit/audit.service.js';
 import { PLANS } from '../billing/plans.js';
 import { sha256 } from '../common/crypto.js';
+import { monthStart } from '../common/period.js';
 import { CONFIG, type AppConfig } from '../config.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { Tenant } from '../tenancy/tenancy.js';
@@ -18,9 +19,6 @@ export function assertIdempotencyKey(key: string | undefined): void {
   if (key !== undefined && !IDEMPOTENCY_KEY.test(key)) throw new BadRequestException({ error: 'invalid_idempotency_key', message: 'Idempotency-Key must be 8-100 characters of [A-Za-z0-9_-]' });
 }
 
-export function monthStart(d = new Date()): Date {
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
-}
 
 @Injectable()
 export class ReviewsService {
